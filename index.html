@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="icon" type="image/png" href="icon.png">
-<title>단어 카드 게임</title>
+<title>Nick의 단어 카드</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html, body { height:100%; }
@@ -77,6 +77,13 @@
   .face.front { background:linear-gradient(145deg,#ff8fb3,#ff5d8f); }
   .face.back { background:linear-gradient(145deg,#6db4ff,#4d96ff); transform:rotateY(180deg); }
   .face .hint { margin-top:14px; font-size:13px; color:#fff; opacity:.8; }
+  .speakBtn {
+    margin-top:14px; border:none; background:rgba(255,255,255,.3); color:#fff;
+    border-radius:22px; padding:10px 18px; font-size:16px; font-weight:700;
+    min-height:44px; cursor:pointer;
+  }
+  .speakBtn:active { transform:scale(.95); }
+  .speakBtn.blue { display:block; background:#4d96ff; margin:0 auto 14px; }
   #judgeRow { display:flex; gap:10px; }
   #judgeRow .btn { flex:1; }
   #progressTxt { text-align:center; margin-top:10px; font-size:14px; color:#777; }
@@ -141,7 +148,7 @@
 <body>
 
 <header>
-  <h1>🃏 단어 카드 게임</h1>
+  <h1>🃏 Nick의 단어 카드</h1>
   <div id="starCount">⭐ 0개 모았어요</div>
 </header>
 
@@ -163,6 +170,7 @@
           <div class="face front">
             <div class="label">이 단어 뜻이 뭘까요?</div>
             <div class="txt" id="cardFront"></div>
+            <button id="speakBtn" class="speakBtn hidden">🔊 발음 듣기</button>
             <div class="hint">👆 카드를 눌러서 뒤집어 보세요</div>
           </div>
           <div class="face back">
@@ -187,6 +195,7 @@
     </div>
     <div id="quizArea" class="hidden">
       <div id="quizWord"></div>
+      <button id="quizSpeakBtn" class="speakBtn blue hidden">🔊 발음 듣기</button>
       <div id="choices"></div>
       <div id="quizScore"></div>
     </div>
@@ -328,6 +337,19 @@
     renderList();
   });
 
+  /* ── 발음 듣기 (영어 단어) ── */
+  function isEnglish(t){ return /[A-Za-z]/.test(t); }
+  function speak(text){
+    if (!('speechSynthesis' in window)) { toast('이 기기는 발음을 지원하지 않아요'); return; }
+    try {
+      speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(text);
+      u.lang = 'en-US';
+      u.rate = 0.85;
+      speechSynthesis.speak(u);
+    } catch(e) {}
+  }
+
   /* ── 카드 외우기 ── */
   var queue = [], cur = null, total = 0;
 
@@ -360,8 +382,14 @@
     $('cardFront').textContent = cur.w;
     $('cardBack').textContent = cur.m;
     $('judgeRow').classList.add('hidden');
+    $('speakBtn').classList.toggle('hidden', !isEnglish(cur.w));
     $('progressTxt').textContent = '남은 카드 ' + (queue.length + 1) + ' / ' + total + '장';
   }
+
+  $('speakBtn').addEventListener('click', function(e){
+    e.stopPropagation();
+    if (cur) speak(cur.w);
+  });
 
   $('card').addEventListener('click', function(){
     var c = $('card');
@@ -433,6 +461,8 @@
     if (qIdx >= qList.length) { endQuiz(); return; }
     var q = qList[qIdx];
     $('quizWord').textContent = q.w;
+    $('quizSpeakBtn').classList.toggle('hidden', !isEnglish(q.w));
+    $('quizSpeakBtn').onclick = function(){ speak(q.w); };
     $('quizScore').textContent = (qIdx+1) + ' / ' + qList.length + '문제 · 맞힌 개수 ' + qScore;
     var wrongs = shuffle(state.words.filter(function(x){ return x.m !== q.m; })).slice(0,3);
     var options = shuffle(wrongs.concat([q]));
