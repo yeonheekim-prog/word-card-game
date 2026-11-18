@@ -207,6 +207,9 @@
   #expFill { height:100%; width:0; background:linear-gradient(90deg,#ffcf3f,#ff5d8f); transition:width .5s; }
   #expTxt { font-size:14px; color:#666; }
   #dex { margin-top:14px; font-size:14px; color:#777; }
+  #spList { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:8px; }
+  .dexCell.special { background:linear-gradient(160deg,#fff7d6,#ffe3f1); box-shadow:0 0 0 2px #ffd34d inset; }
+  .spHint { font-size:12px; color:#ff8a00; margin-top:2px; }
   #dexList { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:8px; }
   .dexCell { background:#fff; border-radius:14px; padding:6px 2px 8px; box-shadow:0 2px 6px rgba(0,0,0,.06); position:relative; }
   .dexCell img { width:56px; height:56px; object-fit:contain; display:block; margin:0 auto; }
@@ -278,7 +281,8 @@
       <div id="monStage"></div>
       <div class="expBar"><div id="expFill"></div></div>
       <div id="expTxt"></div>
-      <div id="dex"><div id="dexTitle">📖 내 포켓몬 도감</div><div id="dexList"></div></div>
+      <div id="dex"><div id="dexTitle">📖 내 포켓몬 도감</div><div id="dexList"></div>
+        <div id="spTitle" style="margin-top:16px"></div><div id="spList" class="dexGrid"></div></div>
     </div>
     <div id="quizEmpty" class="bigMsg hidden">
       <span class="emoji">🃏</span>
@@ -292,7 +296,7 @@
       <div id="miniMon"></div>
     </div>
     <div id="quizStart">
-      <div class="bigMsg" style="padding:24px 10px 6px">지금까지 외운 단어 중에서 랜덤 10문제!<br>맞힐 때마다 포켓몬이 쑥쑥 자라요.</div>
+      <div class="bigMsg" style="padding:24px 10px 6px" id="quizStartMsg"></div>
       <button class="btn btn-blue" id="quizGoBtn">🚀 퀴즈 시작!</button>
     </div>
     <div id="quizEnd" class="hidden">
@@ -366,6 +370,8 @@
     if (!state.att) state.att = { last: '', streak: 0, total: 0 };
     if (!state.mon) state.mon = { line: 0, exp: 0, dex: [] };
     if (!Array.isArray(state.mon.dex)) state.mon.dex = [];
+    if (!Array.isArray(state.special)) state.special = [];
+    if (!Array.isArray(state.eggs)) state.eggs = [];
   }
   function save(){
     try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e) {}
@@ -482,6 +488,9 @@
     return state.mon.dex.map(function(i){ return pic(LINES[i % LINES.length][3][0], px); }).join('');
   }
 
+  // 출석 7일마다 받는 특별 포켓몬
+  var SPECIALS = [[151,'뮤'],[251,'세레비'],[385,'지라치'],[490,'마나피'],[494,'빅티니'],[719,'디안시']];
+
   // 도감 8칸: 모은 건 그림+이름, 못 모은 건 그림자+???
   function renderDex(){
     var cnt = {};
@@ -499,6 +508,24 @@
     });
     $('dexTitle').textContent = '📖 내 포켓몬 도감 (' + have + '/' + LINES.length + ')';
     $('dexList').innerHTML = html;
+    // 특별 포켓몬 칸
+    var sc = {};
+    state.special.forEach(function(i){ var k = i % SPECIALS.length; sc[k] = (sc[k] || 0) + 1; });
+    var sh = 0, shtml = '';
+    SPECIALS.forEach(function(sp, k){
+      var got = sc[k] > 0; if (got) sh++;
+      var url = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/' + sp[0] + '.png';
+      shtml += '<div class="dexCell' + (got ? ' special' : ' locked') + '">' +
+        (sc[k] > 1 ? '<span class="cnt">×' + sc[k] + '</span>' : '') +
+        '<img src="' + url + '" alt="" onerror="this.remove()">' +
+        '<div class="dn">' + (got ? sp[1] : '???') + '</div></div>';
+    });
+    var eggs = state.eggs.length;
+    var toGo = 7 - (state.att.streak % 7);
+    $('spTitle').innerHTML = '✨ 특별 포켓몬 (' + sh + '/' + SPECIALS.length + ')' +
+      '<div class="spHint">' + (eggs ? '🥚 특별 알 ' + eggs + '개! 오늘의 단어 5개를 외우면 깨어나요' :
+        '🔥 ' + toGo + '일 더 연속 출석하면 특별 알이 와요') + '</div>';
+    $('spList').innerHTML = shtml;
   }
 
   function renderMon(){
@@ -602,6 +629,19 @@
   }
   $('rewardCloseBtn').addEventListener('click', nextReward);
 
+  /* ── 특별 알 깨기 (오늘의 단어 5개 완료 때) ── */
+  function hatchEggs(){
+    while (state.eggs.length) {
+      var i = state.eggs.shift();
+      var sp = SPECIALS[i % SPECIALS.length];
+      state.special.push(i);
+      save();
+      showReward(pic(sp[0], 150), '✨ 특별 알이 깨어났어요!',
+        '짜잔! <b>' + josa(sp[1], '이') + '</b> 태어났어요!<br>특별 도감에 등록했어요 📖', '');
+    }
+    renderMon();
+  }
+
   /* ── 매일 출석 ── */
   function checkAttendance(){
     var today = dayKey();
@@ -612,8 +652,16 @@
     var bonus = state.att.streak >= 7 ? 3 : (state.att.streak >= 3 ? 2 : 1);
     state.stars += bonus;
     save();
+    var toGo = 7 - (state.att.streak % 7);
     showReward('📅', '출석 ' + state.att.total + '일째!',
-      '🔥 ' + state.att.streak + '일 연속 왔어요! 출석 별 ⭐+' + bonus + '<br>오늘의 단어 <b>5개</b>가 도착했어요!', '');
+      '🔥 ' + state.att.streak + '일 연속 왔어요! 출석 별 ⭐+' + bonus + '<br>오늘의 단어 <b>5개</b>가 도착했어요!' +
+      (toGo < 7 ? '<br>특별 알까지 ' + toGo + '일 남았어요!' : ''), '');
+    if (state.att.streak % 7 === 0) {
+      state.eggs.push(state.special.length + state.eggs.length);
+      save();
+      showReward('<span style="font-size:72px;filter:hue-rotate(160deg) saturate(2)">🥚</span>', '✨ 특별 알 도착!',
+        '7일 연속 출석 선물이에요!<br>무슨 포켓몬이 들어 있을까요?<br>오늘의 단어 <b>5개</b>를 다 외우면 깨어나요!', '');
+    }
     checkReward();
   }
 
@@ -831,6 +879,7 @@
         state.stars += 5;
         save();
         showReward('🎁', '오늘의 단어 완료!', '5개 다 외웠어요! 보너스 별 ⭐+5<br>이제 퀴즈로 포켓몬을 키워 봐요!', '');
+        hatchEggs();
         checkReward();
       } else {
         confetti();
@@ -908,7 +957,15 @@
     $('quizStart').classList.toggle('hidden', !enough);
     $('quizArea').classList.add('hidden');
     $('quizEnd').classList.add('hidden');
+    $('quizStartMsg').innerHTML = quizCountsToday()
+      ? '지금까지 외운 단어 중에서 랜덤 10문제!<br>맞힐 때마다 포켓몬이 쑥쑥 자라요.<br><b>🎯 오늘의 진화 퀴즈 (하루 1판)</b>'
+      : '오늘 진화 퀴즈는 끝났어요! 👏<br>지금부터는 <b>연습 퀴즈</b>예요.<br>(별·진화 점수는 내일 다시 쌓여요)';
+    $('quizGoBtn').textContent = quizCountsToday() ? '🚀 진화 퀴즈 시작!' : '📝 연습 퀴즈 하기';
   }
+
+  // 진화 점수는 하루 첫 판만 쌓임
+  var scoring = false;
+  function quizCountsToday(){ return state.quizDay !== dayKey(); }
 
   function shuffle(arr){
     for (var i=arr.length-1; i>0; i--){
@@ -926,6 +983,8 @@
     }
     qList = qList.slice(0, QUIZ_LEN);
     qIdx = 0; qScore = 0;
+    scoring = quizCountsToday();
+    if (scoring) { state.quizDay = dayKey(); save(); }
     $('monPanel').classList.add('hidden');
     $('quizStart').classList.add('hidden');
     $('quizEnd').classList.add('hidden');
@@ -939,7 +998,7 @@
     $('quizWord').textContent = q.w;
     $('quizSpeakBtn').classList.toggle('hidden', !isEnglish(q.w));
     $('quizSpeakBtn').onclick = function(){ speak(q.w); };
-    $('quizScore').textContent = (qIdx+1) + ' / ' + qList.length + '문제 · 맞힌 개수 ' + qScore;
+    $('quizScore').textContent = (scoring ? '' : '📝 연습 · ') + (qIdx+1) + ' / ' + qList.length + '문제 · 맞힌 개수 ' + qScore;
     // 틀린 보기: 내 단어 + 기본 단어장에서 뜻이 겹치지 않게 3개
     var seen = {}; seen[q.m] = true;
     var wrongs = [];
@@ -960,10 +1019,12 @@
         if (opt.m === q.m) {
           b.classList.add('ok');
           qScore++;
-          state.stars++;
-          save();
-          checkReward();
-          feedMon();
+          if (scoring) {
+            state.stars++;
+            save();
+            checkReward();
+            feedMon();
+          }
           confetti();
         } else {
           b.classList.add('no');
@@ -992,7 +1053,9 @@
     else if (qScore >= qList.length * 0.7) { emo = '🌟'; msg = '정말 잘했어요!'; }
     else { emo = '💪'; msg = '괜찮아요! 카드로 더 연습해 봐요!'; }
     $('quizEndEmoji').textContent = emo;
-    $('quizEndTxt').innerHTML = qList.length + '문제 중 <b>' + qScore + '개</b> 맞혔어요!<br>' + msg;
+    $('quizEndTxt').innerHTML = qList.length + '문제 중 <b>' + qScore + '개</b> 맞혔어요!<br>' + msg +
+      (scoring ? '<br>진화 점수 +' + qScore + '! 내일 또 만나요 👋' : '<br>(연습이라 점수는 안 쌓여요)');
+    $('quizAgainBtn').textContent = quizCountsToday() ? '🚀 진화 퀴즈 시작!' : '📝 연습 퀴즈 더 하기';
   }
 
   $('quizGoBtn').addEventListener('click', startQuiz);
