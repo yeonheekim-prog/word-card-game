@@ -207,7 +207,15 @@
   #expFill { height:100%; width:0; background:linear-gradient(90deg,#ffcf3f,#ff5d8f); transition:width .5s; }
   #expTxt { font-size:14px; color:#666; }
   #dex { margin-top:14px; font-size:14px; color:#777; }
-  #dexList { font-size:30px; letter-spacing:4px; margin-top:4px; word-break:break-all; }
+  #dexList { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:8px; }
+  .dexCell { background:#fff; border-radius:14px; padding:6px 2px 8px; box-shadow:0 2px 6px rgba(0,0,0,.06); position:relative; }
+  .dexCell img { width:56px; height:56px; object-fit:contain; display:block; margin:0 auto; }
+  .dexCell .dn { font-size:12px; font-weight:700; color:#3a3a4a; margin-top:2px; word-break:keep-all; }
+  .dexCell.locked { background:#f1f1f6; }
+  .dexCell.locked img { filter:brightness(0); opacity:.18; }
+  .dexCell.locked .dn { color:#aaa; }
+  .dexCell.now { outline:2px dashed #ffb02e; }
+  .dexCell .cnt { position:absolute; top:3px; right:5px; font-size:11px; color:#ff5d8f; font-weight:800; }
   #miniMon { text-align:center; font-size:14px; color:#777; margin-top:10px; }
   #miniMon b { font-size:22px; }
 </style>
@@ -270,7 +278,7 @@
       <div id="monStage"></div>
       <div class="expBar"><div id="expFill"></div></div>
       <div id="expTxt"></div>
-      <div id="dex"><div>📖 내 포켓몬 도감</div><div id="dexList"></div></div>
+      <div id="dex"><div id="dexTitle">📖 내 포켓몬 도감</div><div id="dexList"></div></div>
     </div>
     <div id="quizEmpty" class="bigMsg hidden">
       <span class="emoji">🃏</span>
@@ -474,6 +482,25 @@
     return state.mon.dex.map(function(i){ return pic(LINES[i % LINES.length][3][0], px); }).join('');
   }
 
+  // 도감 8칸: 모은 건 그림+이름, 못 모은 건 그림자+???
+  function renderDex(){
+    var cnt = {};
+    state.mon.dex.forEach(function(i){ var k = i % LINES.length; cnt[k] = (cnt[k] || 0) + 1; });
+    var nowLine = state.mon.line % LINES.length;
+    var have = 0, html = '';
+    LINES.forEach(function(L, k){
+      var got = cnt[k] > 0;
+      if (got) have++;
+      var url = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/' + L[3][0] + '.png';
+      html += '<div class="dexCell' + (got ? '' : ' locked') + (k === nowLine ? ' now' : '') + '">' +
+        (cnt[k] > 1 ? '<span class="cnt">×' + cnt[k] + '</span>' : '') +
+        '<img src="' + url + '" alt="" onerror="this.remove()">' +
+        '<div class="dn">' + (got ? L[3][1] : (k === nowLine ? '키우는 중' : '???')) + '</div></div>';
+    });
+    $('dexTitle').textContent = '📖 내 포켓몬 도감 (' + have + '/' + LINES.length + ')';
+    $('dexList').innerHTML = html;
+  }
+
   function renderMon(){
     var m = monNow();
     var el = $('monEmoji');
@@ -488,7 +515,7 @@
     $('expTxt').textContent = m.st === 0
       ? '퀴즈를 ' + left + '개 더 맞히면 알에서 ' + josa(m.line[1][1], '이') + ' 나와요!'
       : '퀴즈를 ' + left + '개 더 맞히면 ' + josa(m.line[m.st + 1][1], '으로') + ' 진화해요!';
-    $('dexList').innerHTML = state.mon.dex.length ? dexHtml(48) : '아직 비어 있어요';
+    renderDex();
     $('miniMon').innerHTML = pic(m.id, 36) + ' ' + m.n + ' · 진화까지 ' + left + '개';
   }
 
