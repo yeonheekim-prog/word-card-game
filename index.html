@@ -185,6 +185,7 @@
   }
   .reportItem .rw { font-weight:700; }
   .reportItem .rm { color:#888; font-size:14px; margin-top:2px; }
+  .dayHead { position:sticky; top:0; background:#fff4d6; color:#b86e00; font-weight:800; font-size:14px; padding:6px 10px; border-radius:10px; margin-top:8px; }
 
   /* 오늘의 단어 */
   #todayInfo {
@@ -316,6 +317,7 @@
       <button class="btn btn-pink" id="addBtn">➕ 단어 넣기</button>
     </div>
     <button class="btn btn-blue" id="weeklyBtn">📚 이번 주 배운 단어 보기</button>
+    <button class="btn btn-green" id="upcomingBtn">🔮 앞으로 나올 단어 보기</button>
     <div id="listCount"></div>
     <div id="wordList"></div>
   </section>
@@ -341,7 +343,7 @@
 
 <div id="reportOverlay" class="hidden">
   <div id="reportCard">
-    <h2>📚 이번 주 배운 단어</h2>
+    <h2 id="reportTitle">📚 이번 주 배운 단어</h2>
     <p id="reportSub"></p>
     <div id="reportList"></div>
     <button class="btn btn-blue" id="reportCloseBtn">✅ 다 봤어요</button>
@@ -678,6 +680,7 @@
     var list = state.words.filter(function(x){ return (x.t || 0) >= sinceTs; });
     if (!list.length) return false;
     var done = list.filter(function(x){ return x.lv >= 3; }).length;
+    $('reportTitle').textContent = '📚 이번 주 배운 단어';
     $('reportSub').textContent = '새 단어 ' + list.length + '개 · 완전히 외운 단어 ' + done + '개';
     var box = $('reportList');
     box.innerHTML = '';
@@ -700,6 +703,54 @@
   $('weeklyBtn').addEventListener('click', function(){
     if (!showReport(Date.now() - WEEK)) toast('이번 주에 넣은 단어가 아직 없어요');
   });
+
+  /* ── 앞으로 나올 단어 (오늘의 단어 고르는 순서와 같게) ── */
+  function upcomingWords(){
+    var today = (state.daily && state.daily.date === dayKey()) ? state.daily.words : [];
+    var list = state.words.filter(function(x){ return x.lv === 0 && today.indexOf(x.w) < 0; })
+      .sort(function(a,b){ return (b.d ? 1 : 0) - (a.d ? 1 : 0) || a.t - b.t; })
+      .map(function(x){ return { w:x.w, m:x.m }; });
+    var have = {};
+    state.words.forEach(function(x){ have[x.w.toLowerCase()] = true; });
+    BANK.forEach(function(b){ if (!have[b.w.toLowerCase()]) list.push(b); });
+    return { today: today, list: list };
+  }
+
+  function showUpcoming(){
+    ensureDaily();
+    var u = upcomingWords();
+    $('reportTitle').textContent = '🔮 앞으로 나올 단어';
+    var days = Math.ceil(u.list.length / DAILY_N);
+    $('reportSub').textContent = '남은 단어 ' + u.list.length + '개 · 하루 5개씩 약 ' + days + '일';
+    var box = $('reportList');
+    box.innerHTML = '';
+    function head(t){ var h = document.createElement('div'); h.className = 'dayHead'; h.textContent = t; box.appendChild(h); }
+    function item(x, mark){
+      var d = document.createElement('div');
+      d.className = 'reportItem';
+      d.innerHTML = '<div class="rw"></div><div class="rm"></div>';
+      d.querySelector('.rw').textContent = mark + x.w;
+      d.querySelector('.rm').textContent = x.m;
+      box.appendChild(d);
+    }
+    if (u.today.length) {
+      head('📅 오늘');
+      u.today.forEach(function(w){ var x = findWord(w); if (x) item(x, state.daily.ok.indexOf(w) >= 0 ? '✅ ' : '⬜ '); });
+    }
+    var base = new Date();
+    u.list.forEach(function(x, i){
+      if (i % DAILY_N === 0) {
+        var n = i / DAILY_N + 1;
+        var dt = new Date(base.getFullYear(), base.getMonth(), base.getDate() + n);
+        head((n === 1 ? '내일' : n === 2 ? '모레' : n + '일 뒤') + ' · ' + (dt.getMonth()+1) + '/' + dt.getDate());
+      }
+      item(x, '');
+    });
+    if (!u.list.length) item({ w:'앞으로 나올 새 단어가 없어요', m:'단어 넣기로 새 단어를 넣어 주세요' }, '');
+    $('reportList').scrollTop = 0;
+    $('reportOverlay').classList.remove('hidden');
+  }
+  $('upcomingBtn').addEventListener('click', showUpcoming);
 
   function weeklyCheck(){
     if (typeof state.lastReport !== 'number') {
