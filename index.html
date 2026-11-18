@@ -185,6 +185,31 @@
   }
   .reportItem .rw { font-weight:700; }
   .reportItem .rm { color:#888; font-size:14px; margin-top:2px; }
+
+  /* 오늘의 단어 */
+  #todayInfo {
+    background:#fff; border-radius:16px; padding:10px 14px; text-align:center;
+    font-size:15px; box-shadow:0 2px 8px rgba(0,0,0,.06);
+  }
+  #todayDots { font-size:20px; letter-spacing:4px; margin-top:4px; }
+
+  /* 몬스터 */
+  #monPanel {
+    background:linear-gradient(160deg,#fff,#f3ecff); border-radius:24px;
+    padding:18px 16px; text-align:center; box-shadow:0 6px 16px rgba(0,0,0,.1);
+  }
+  #monEmoji { font-size:80px; display:inline-block; line-height:1.1; }
+  #monEmoji.egg { animation:wobble 1.2s infinite ease-in-out; }
+  @keyframes wobble { 0%,100% { transform:rotate(0); } 25% { transform:rotate(-10deg); } 75% { transform:rotate(10deg); } }
+  #monName { font-size:20px; font-weight:800; margin-top:6px; }
+  #monStage { font-size:13px; color:#888; margin-top:2px; }
+  .expBar { height:16px; background:#eee; border-radius:10px; overflow:hidden; margin:12px 0 6px; }
+  #expFill { height:100%; width:0; background:linear-gradient(90deg,#ffcf3f,#ff5d8f); transition:width .5s; }
+  #expTxt { font-size:14px; color:#666; }
+  #dex { margin-top:14px; font-size:14px; color:#777; }
+  #dexList { font-size:30px; letter-spacing:4px; margin-top:4px; word-break:break-all; }
+  #miniMon { text-align:center; font-size:14px; color:#777; margin-top:10px; }
+  #miniMon b { font-size:22px; }
 </style>
 </head>
 <body>
@@ -201,10 +226,18 @@
       <span class="emoji">📝</span>
       아직 단어가 없어요!<br>아래 <b>단어 넣기</b>에서<br>새로 알게 된 단어를 넣어 주세요.
     </div>
-    <div id="studyDone" class="bigMsg hidden">
-      <span class="emoji">🎉</span>
-      와~ 오늘 카드 공부 끝!<br>정말 잘했어요!
-      <button class="btn btn-pink" id="restudyBtn" style="margin-top:20px">🔄 한 번 더 하기</button>
+    <div id="studyDone" class="hidden">
+      <div class="bigMsg" style="padding:30px 10px 10px">
+        <span class="emoji">🎉</span>
+        <span id="studyDoneTxt">오늘의 단어 5개 끝!<br>정말 잘했어요!</span>
+      </div>
+      <button class="btn btn-blue" id="goQuizBtn">🎮 퀴즈 풀고 몬스터 키우기</button>
+      <button class="btn btn-pink" id="restudyBtn">🔄 오늘 단어 다시 보기</button>
+      <button class="btn btn-green" id="reviewAllBtn">📚 모은 단어 전체 복습</button>
+    </div>
+    <div id="todayInfo" class="hidden">
+      <b id="todayTitle">📅 오늘의 단어</b>
+      <div id="todayDots"></div>
     </div>
     <div id="studyArea">
       <div id="cardBox">
@@ -231,18 +264,27 @@
 
   <!-- 퀴즈 -->
   <section id="tab-quiz" class="hidden">
+    <div id="monPanel">
+      <span id="monEmoji">🥚</span>
+      <div id="monName"></div>
+      <div id="monStage"></div>
+      <div class="expBar"><div id="expFill"></div></div>
+      <div id="expTxt"></div>
+      <div id="dex"><div>📖 내 몬스터 도감</div><div id="dexList"></div></div>
+    </div>
     <div id="quizEmpty" class="bigMsg hidden">
-      <span class="emoji">🎮</span>
-      퀴즈는 단어가 <b>4개</b> 넘으면<br>할 수 있어요!
+      <span class="emoji">🃏</span>
+      먼저 <b>오늘의 단어</b>를 외워 주세요!<br>외운 단어가 <b>5개</b> 넘으면<br>퀴즈를 할 수 있어요.
     </div>
     <div id="quizArea" class="hidden">
       <div id="quizWord"></div>
       <button id="quizSpeakBtn" class="speakBtn blue hidden">🔊 발음 듣기</button>
       <div id="choices"></div>
       <div id="quizScore"></div>
+      <div id="miniMon"></div>
     </div>
     <div id="quizStart">
-      <div class="bigMsg"><span class="emoji">🎯</span>단어 뜻을 맞히는 퀴즈!<br>10문제에 도전해 보세요.</div>
+      <div class="bigMsg" style="padding:24px 10px 6px">지금까지 외운 단어 중에서 랜덤 10문제!<br>맞힐 때마다 몬스터가 쑥쑥 자라요.</div>
       <button class="btn btn-blue" id="quizGoBtn">🚀 퀴즈 시작!</button>
     </div>
     <div id="quizEnd" class="hidden">
@@ -268,16 +310,16 @@
 </main>
 
 <nav>
-  <button data-tab="study" class="on"><span class="ico">🃏</span>카드 외우기</button>
-  <button data-tab="quiz"><span class="ico">🎮</span>퀴즈 게임</button>
-  <button data-tab="words"><span class="ico">📝</span>단어 넣기</button>
+  <button data-tab="study" class="on"><span class="ico">🃏</span>오늘의 단어</button>
+  <button data-tab="quiz"><span class="ico">🐉</span>퀴즈·진화</button>
+  <button data-tab="words"><span class="ico">📝</span>단어장</button>
 </nav>
 
 <div id="toast"></div>
 
 <div id="rewardOverlay" class="hidden">
   <div id="rewardCard">
-    <span class="trophy">🏆</span>
+    <span class="trophy" id="rewardIcon">🏆</span>
     <h2 id="rewardTitle"></h2>
     <p id="rewardMsg"></p>
     <div class="shelf" id="rewardShelf"></div>
@@ -313,6 +355,9 @@
       // 예전에 넣은 단어에는 넣은 날짜가 없으니 오늘로 채우기
       state.words.forEach(function(x){ if (typeof x.t !== 'number') x.t = Date.now(); });
     } catch(e) {}
+    if (!state.att) state.att = { last: '', streak: 0, total: 0 };
+    if (!state.mon) state.mon = { line: 0, exp: 0, dex: [] };
+    if (!Array.isArray(state.mon.dex)) state.mon.dex = [];
   }
   function save(){
     try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e) {}
@@ -336,7 +381,124 @@
 
   function renderStars(){
     var r = rankOf(state.celebrated || 0);
-    $('starCount').textContent = '⭐ ' + state.stars + '개 · ' + r[1] + ' ' + r[2];
+    var streak = (state.att && state.att.streak) ? ' · 🔥' + state.att.streak + '일 연속' : '';
+    $('starCount').textContent = '⭐ ' + state.stars + '개 · ' + r[1] + ' ' + r[2] + streak;
+  }
+
+  /* ── 날짜 (그 기기의 오늘 날짜) ── */
+  function dayKey(dt){
+    dt = dt || new Date();
+    return dt.getFullYear() + '-' + (dt.getMonth()+1) + '-' + dt.getDate();
+  }
+  function yesterdayKey(){
+    var n = new Date();
+    return dayKey(new Date(n.getFullYear(), n.getMonth(), n.getDate() - 1));
+  }
+
+  /* ── 기본 영어 단어장 (매일 5개씩 꺼내 줌) ── */
+  var BANK_RAW = [
+    'apple|사과','banana|바나나','orange|오렌지','grape|포도','strawberry|딸기','watermelon|수박','carrot|당근','potato|감자','onion|양파','bread|빵',
+    'cheese|치즈','egg|달걀','milk|우유','water|물','juice|주스','rice|밥, 쌀','soup|국, 수프','cookie|과자, 쿠키','breakfast|아침밥','lunch|점심밥',
+    'dinner|저녁밥','hungry|배고픈','thirsty|목마른','delicious|맛있는','sweet|달콤한','sour|신, 시큼한','salty|짠','spicy|매운','bitter|쓴','fresh|신선한',
+    'dog|개','cat|고양이','rabbit|토끼','horse|말','cow|소','pig|돼지','sheep|양','chicken|닭','duck|오리','mouse|쥐',
+    'lion|사자','tiger|호랑이','elephant|코끼리','monkey|원숭이','giraffe|기린','zebra|얼룩말','bear|곰','wolf|늑대','fox|여우','snake|뱀',
+    'kangaroo|캥거루','koala|코알라','penguin|펭귄','dolphin|돌고래','whale|고래','shark|상어','turtle|거북이','frog|개구리','butterfly|나비','spider|거미',
+    'bird|새','owl|부엉이','eagle|독수리','bee|벌','ant|개미','mother|엄마','father|아빠','brother|형, 오빠, 남동생','sister|누나, 언니, 여동생','grandmother|할머니',
+    'grandfather|할아버지','baby|아기','friend|친구','teacher|선생님','student|학생','doctor|의사','family|가족','neighbor|이웃','school|학교','classroom|교실',
+    'library|도서관','hospital|병원','park|공원','beach|바닷가','store|가게','kitchen|부엌','bedroom|침실','bathroom|화장실, 욕실','garden|정원','playground|놀이터',
+    'house|집','window|창문','door|문','table|탁자','chair|의자','bed|침대','pencil|연필','eraser|지우개','ruler|자','scissors|가위',
+    'book|책','paper|종이','crayon|크레용','backpack|책가방','clock|시계','umbrella|우산','hat|모자','shoes|신발','socks|양말','shirt|셔츠',
+    'pants|바지','dress|원피스','jacket|재킷, 겉옷','glasses|안경','head|머리','face|얼굴','eye|눈','ear|귀','nose|코','mouth|입',
+    'tooth|이, 치아','hand|손','finger|손가락','foot|발','leg|다리','arm|팔','shoulder|어깨','knee|무릎','heart|심장, 마음','hair|머리카락',
+    'red|빨간색','blue|파란색','yellow|노란색','green|초록색','purple|보라색','pink|분홍색','brown|갈색','black|검은색','white|흰색','gray|회색',
+    'one|하나, 1','two|둘, 2','three|셋, 3','ten|열, 10','twenty|스물, 20','hundred|백, 100','first|첫 번째','second|두 번째','last|마지막','half|반, 절반',
+    'sun|해, 태양','moon|달','star|별','sky|하늘','cloud|구름','rain|비','snow|눈(날씨)','wind|바람','rainbow|무지개','storm|폭풍',
+    'tree|나무','flower|꽃','grass|풀, 잔디','leaf|나뭇잎','river|강','mountain|산','ocean|바다','island|섬','forest|숲','rock|바위, 돌',
+    'spring|봄','summer|여름','autumn|가을','winter|겨울','morning|아침','afternoon|오후','evening|저녁','night|밤','today|오늘','tomorrow|내일',
+    'yesterday|어제','week|주, 일주일','month|달, 한 달','year|해, 1년','Monday|월요일','Friday|금요일','Sunday|일요일','weekend|주말','birthday|생일','holiday|휴일, 방학',
+    'happy|행복한','sad|슬픈','angry|화난','scared|무서운, 겁먹은','tired|피곤한','excited|신난','bored|심심한','surprised|놀란','proud|자랑스러운','worried|걱정되는',
+    'big|큰','small|작은','tall|키가 큰','short|짧은, 키가 작은','long|긴','fast|빠른','slow|느린','hot|뜨거운, 더운','cold|차가운, 추운','warm|따뜻한',
+    'new|새로운','old|오래된, 늙은','young|어린','easy|쉬운','difficult|어려운','heavy|무거운','light|가벼운','loud|시끄러운','quiet|조용한','clean|깨끗한',
+    'dirty|더러운','full|가득 찬, 배부른','empty|비어 있는','strong|힘센','weak|약한','brave|용감한','kind|친절한','funny|웃긴','smart|똑똑한','careful|조심하는',
+    'run|달리다','walk|걷다','jump|뛰다, 점프하다','swim|수영하다','climb|오르다','throw|던지다','catch|잡다','kick|차다','push|밀다','pull|당기다',
+    'eat|먹다','drink|마시다','sleep|자다','wake up|일어나다','read|읽다','write|쓰다','draw|그리다','sing|노래하다','dance|춤추다','play|놀다',
+    'listen|듣다','speak|말하다','ask|묻다','answer|대답하다','help|돕다','share|나누다','learn|배우다','teach|가르치다','remember|기억하다','forget|잊다',
+    'open|열다','close|닫다','give|주다','take|가져가다','find|찾다','lose|잃어버리다','build|만들다, 짓다','break|깨뜨리다','fix|고치다','wash|씻다',
+    'cook|요리하다','buy|사다','sell|팔다','wait|기다리다','start|시작하다','finish|끝내다','win|이기다','try|해 보다, 노력하다','choose|고르다','laugh|웃다',
+    'cry|울다','smile|미소 짓다','think|생각하다','know|알다','understand|이해하다','believe|믿다','hope|바라다','love|사랑하다','like|좋아하다','want|원하다',
+    'car|자동차','bus|버스','train|기차','airplane|비행기','bicycle|자전거','boat|배(탈것)','ticket|표','map|지도','road|길, 도로','bridge|다리(건너는)',
+    'ball|공','game|게임, 경기','toy|장난감','team|팀','music|음악','picture|그림, 사진','story|이야기','question|질문','idea|생각, 아이디어','problem|문제',
+    'money|돈','present|선물','party|파티','letter|편지, 글자','word|단어','sentence|문장','number|숫자','color|색깔','shape|모양','circle|동그라미',
+    'square|네모','triangle|세모','inside|안에','outside|밖에','under|아래에','between|사이에','behind|뒤에','near|가까이','always|항상','sometimes|가끔'
+  ];
+  var BANK = BANK_RAW.map(function(s){ var p = s.split('|'); return { w:p[0], m:p[1] }; });
+
+  /* ── 몬스터 (퀴즈 맞히면 진화) ── */
+  var LINES = [
+    [['🥚','불꽃 알'],['🦎','불꼬리'],['🐊','화염악어'],['🐉','용암 드래곤']],
+    [['🥚','물방울 알'],['🐟','퐁당피쉬'],['🐬','파도 돌핀'],['🐳','바다왕 고래']],
+    [['🥚','새싹 알'],['🐛','꼬물잎'],['🐝','윙윙벌'],['🦋','무지개 나비']],
+    [['🥚','번개 알'],['🐣','삐약톡'],['🐥','찌릿 병아리'],['🦅','천둥매']],
+    [['🥚','바위 알'],['🐢','돌거북'],['🦏','바위 코뿔'],['🦖','암석킹']],
+    [['🥚','눈송이 알'],['🐧','콩콩펭귄'],['🦭','얼음 물범'],['🐻‍❄️','빙하곰']]
+  ];
+  var EVO = [0, 5, 20, 45];   // 맞힌 개수가 이만큼 되면 다음 모습으로
+  var STAGE_NAME = ['알', '아기', '청소년', '최종 진화'];
+
+  function stageOf(exp){
+    var s = 0;
+    for (var i = 0; i < EVO.length; i++) if (exp >= EVO[i]) s = i;
+    return s;
+  }
+  function monNow(){
+    var line = LINES[state.mon.line % LINES.length];
+    var st = stageOf(state.mon.exp);
+    return { line: line, st: st, e: line[st][0], n: line[st][1] };
+  }
+
+  function renderMon(){
+    var m = monNow();
+    var el = $('monEmoji');
+    el.textContent = m.e;
+    el.classList.toggle('egg', m.st === 0);
+    $('monName').textContent = m.n;
+    $('monStage').textContent = STAGE_NAME[m.st] + ' 단계 (' + (m.st + 1) + '/4)';
+    var lo = EVO[m.st], hi = EVO[m.st + 1];
+    var pct = Math.round((state.mon.exp - lo) / (hi - lo) * 100);
+    $('expFill').style.width = pct + '%';
+    var left = hi - state.mon.exp;
+    $('expTxt').textContent = m.st === 0
+      ? '퀴즈를 ' + left + '개 더 맞히면 알이 깨어나요!'
+      : '퀴즈를 ' + left + '개 더 맞히면 진화해요!';
+    var dex = state.mon.dex;
+    $('dexList').textContent = dex.length
+      ? dex.map(function(i){ var L = LINES[i % LINES.length]; return L[3][0]; }).join('')
+      : '아직 비어 있어요';
+    $('miniMon').innerHTML = '<b>' + m.e + '</b> ' + m.n + ' · 진화까지 ' + left + '개';
+  }
+
+  function feedMon(){
+    var before = stageOf(state.mon.exp);
+    state.mon.exp++;
+    var after = stageOf(state.mon.exp);
+    var line = LINES[state.mon.line % LINES.length];
+    if (after === 3 && before < 3) {
+      // 최종 진화 → 도감에 넣고 새 알 받기
+      state.mon.dex.push(state.mon.line);
+      var nextLine = LINES[(state.mon.line + 1) % LINES.length];
+      showReward(line[3][0], '최종 진화!! ' + line[3][1],
+        line[2][0] + ' ➜ ' + line[3][0] + '<br>도감에 등록했어요! 📖<br>새 알이 도착했어요: ' + nextLine[0][0] + ' ' + nextLine[0][1],
+        state.mon.dex.map(function(i){ return LINES[i % LINES.length][3][0]; }).join(''));
+      state.mon.line++;
+      state.mon.exp = 0;
+    } else if (after > before) {
+      var msg = before === 0
+        ? '알이 깨어났어요!<br>' + line[0][0] + ' ➜ ' + line[after][0]
+        : '몬스터가 진화했어요!<br>' + line[before][0] + ' ' + line[before][1] + ' ➜ ' + line[after][0] + ' ' + line[after][1];
+      showReward(line[after][0], (before === 0 ? '짜잔! ' : '진화! ') + line[after][1], msg, '');
+    }
+    save();
+    renderMon();
   }
 
   function toast(msg){
@@ -368,24 +530,50 @@
       state.celebrated = block;
       var after = rankOf(block);
       save();
-      $('rewardTitle').textContent = '⭐ 별 ' + (block * 20) + '개 달성!';
       var msg = '와~ Nick 정말 대단해요!<br>새 트로피를 받았어요!';
       if (after !== before) {
         msg += '<br>등급이 올랐어요: <b>' + after[1] + ' ' + after[2] + '</b>!';
       }
-      $('rewardMsg').innerHTML = msg;
       var shelf = '';
       for (var i = 0; i < Math.min(block, 20); i++) shelf += '🏆';
-      $('rewardShelf').textContent = shelf;
-      $('rewardOverlay').classList.remove('hidden');
-      confetti();
-      setTimeout(confetti, 500);
-      setTimeout(confetti, 1000);
+      showReward('🏆', '⭐ 별 ' + (block * 20) + '개 달성!', msg, shelf);
     }
   }
-  $('rewardCloseBtn').addEventListener('click', function(){
-    $('rewardOverlay').classList.add('hidden');
-  });
+
+  /* 축하 화면은 순서대로 하나씩 보여 주기 */
+  var rewardQueue = [];
+  function showReward(icon, title, msgHtml, shelf){
+    rewardQueue.push([icon, title, msgHtml, shelf || '']);
+    if ($('rewardOverlay').classList.contains('hidden')) nextReward();
+  }
+  function nextReward(){
+    var r = rewardQueue.shift();
+    if (!r) { $('rewardOverlay').classList.add('hidden'); return; }
+    $('rewardIcon').textContent = r[0];
+    $('rewardTitle').textContent = r[1];
+    $('rewardMsg').innerHTML = r[2];
+    $('rewardShelf').textContent = r[3];
+    $('rewardOverlay').classList.remove('hidden');
+    confetti();
+    setTimeout(confetti, 500);
+    setTimeout(confetti, 1000);
+  }
+  $('rewardCloseBtn').addEventListener('click', nextReward);
+
+  /* ── 매일 출석 ── */
+  function checkAttendance(){
+    var today = dayKey();
+    if (state.att.last === today) return;
+    state.att.streak = (state.att.last === yesterdayKey()) ? state.att.streak + 1 : 1;
+    state.att.total++;
+    state.att.last = today;
+    var bonus = state.att.streak >= 7 ? 3 : (state.att.streak >= 3 ? 2 : 1);
+    state.stars += bonus;
+    save();
+    showReward('📅', '출석 ' + state.att.total + '일째!',
+      '🔥 ' + state.att.streak + '일 연속 왔어요! 출석 별 ⭐+' + bonus + '<br>오늘의 단어 <b>5개</b>가 도착했어요!', '');
+    checkReward();
+  }
 
   /* ── 주간 배운 단어 정리 ── */
   var WEEK = 7 * 24 * 60 * 60 * 1000;
@@ -503,29 +691,109 @@
 
   /* ── 카드 외우기 ── */
   var queue = [], cur = null, total = 0;
+  var mode = 'today';   // today = 오늘의 단어 5개, review = 전체 복습
+  var DAILY_N = 5;
+
+  function findWord(w){
+    for (var i = 0; i < state.words.length; i++) if (state.words[i].w === w) return state.words[i];
+    return null;
+  }
+
+  // 오늘의 단어 5개 정하기: ①못 끝낸 단어 ②직접 넣은 새 단어 ③기본 단어장 순서
+  function ensureDaily(){
+    var today = dayKey();
+    if (state.daily && state.daily.date === today) return;
+    var pick = [];
+    var notYet = state.words.filter(function(x){ return x.lv === 0; })
+      .sort(function(a,b){ return (b.d ? 1 : 0) - (a.d ? 1 : 0) || a.t - b.t; });
+    notYet.forEach(function(x){ if (pick.length < DAILY_N) pick.push(x.w); });
+    var have = {};
+    state.words.forEach(function(x){ have[x.w.toLowerCase()] = true; });
+    for (var i = 0; i < BANK.length && pick.length < DAILY_N; i++) {
+      var b = BANK[i];
+      if (have[b.w.toLowerCase()]) continue;
+      state.words.push({ w:b.w, m:b.m, lv:0, t:Date.now(), src:'bank' });
+      have[b.w.toLowerCase()] = true;
+      pick.push(b.w);
+    }
+    // 단어장을 다 외웠으면 덜 외운 단어로 복습
+    if (pick.length < DAILY_N) {
+      shuffle(state.words.slice()).sort(function(a,b){ return a.lv - b.lv; }).forEach(function(x){
+        if (pick.length < DAILY_N && pick.indexOf(x.w) < 0) pick.push(x.w);
+      });
+    }
+    pick.forEach(function(w){ var x = findWord(w); if (x && !x.d) x.d = today; });
+    state.daily = { date: today, words: pick, ok: [], done: false };
+    save();
+  }
+
+  function renderTodayDots(){
+    var d = state.daily;
+    var list = d.words.filter(findWord);
+    $('todayTitle').textContent = mode === 'today'
+      ? '📅 오늘의 단어 (' + d.ok.length + '/' + list.length + ')'
+      : '📚 모은 단어 전체 복습';
+    $('todayDots').textContent = mode === 'today'
+      ? list.map(function(w){ return d.ok.indexOf(w) >= 0 ? '✅' : '⬜'; }).join('')
+      : '';
+  }
 
   function startStudy(){
-    $('studyDone').classList.add('hidden');
-    if (!state.words.length) {
-      $('studyEmpty').classList.remove('hidden');
-      $('studyArea').classList.add('hidden');
-      return;
-    }
+    mode = 'today';
+    ensureDaily();
     $('studyEmpty').classList.add('hidden');
+    var d = state.daily;
+    var list = d.words.map(findWord).filter(Boolean);
+    if (d.done) { showStudyDone(); return; }
+    $('studyDone').classList.add('hidden');
+    $('todayInfo').classList.remove('hidden');
     $('studyArea').classList.remove('hidden');
-    // 덜 외운 단어(lv 낮은 것) 먼저, 섞어서
-    queue = state.words.slice().sort(function(a,b){
-      return (a.lv - b.lv) || (Math.random() - .5);
-    });
+    queue = shuffle(list.filter(function(x){ return d.ok.indexOf(x.w) < 0; }));
     total = queue.length;
+    renderTodayDots();
     nextCard();
+  }
+
+  function startReview(onlyToday){
+    mode = 'review';
+    $('studyDone').classList.add('hidden');
+    $('todayInfo').classList.remove('hidden');
+    $('studyArea').classList.remove('hidden');
+    if (onlyToday) {
+      queue = shuffle(state.daily.words.map(findWord).filter(Boolean));
+    } else {
+      queue = state.words.filter(function(x){ return x.lv >= 1; }).sort(function(a,b){
+        return (a.lv - b.lv) || (Math.random() - .5);
+      });
+    }
+    if (!queue.length) { toast('아직 외운 단어가 없어요'); startStudy(); return; }
+    total = queue.length;
+    renderTodayDots();
+    $('todayTitle').textContent = onlyToday ? '🔄 오늘 단어 다시 보기' : '📚 모은 단어 전체 복습';
+    nextCard();
+  }
+
+  function showStudyDone(){
+    $('studyArea').classList.add('hidden');
+    $('todayInfo').classList.add('hidden');
+    $('studyDone').classList.remove('hidden');
+    $('studyDoneTxt').innerHTML = mode === 'today'
+      ? '오늘의 단어 ' + state.daily.words.length + '개 끝!<br>내일 또 새 단어 5개가 와요.'
+      : '복습 끝! 정말 잘했어요!';
   }
 
   function nextCard(){
     if (!queue.length) {
-      $('studyArea').classList.add('hidden');
-      $('studyDone').classList.remove('hidden');
-      confetti();
+      if (mode === 'today' && !state.daily.done) {
+        state.daily.done = true;
+        state.stars += 5;
+        save();
+        showReward('🎁', '오늘의 단어 완료!', '5개 다 외웠어요! 보너스 별 ⭐+5<br>이제 퀴즈로 몬스터를 키워 봐요!', '');
+        checkReward();
+      } else {
+        confetti();
+      }
+      showStudyDone();
       return;
     }
     cur = queue.shift();
@@ -557,14 +825,17 @@
       if (cur.lv === 3) { toast('🏅 "' + cur.w + '" 완전히 외웠어요!'); confetti(); }
     }
     state.stars++;
+    if (mode === 'today' && state.daily.ok.indexOf(cur.w) < 0) state.daily.ok.push(cur.w);
     save();
     checkReward();
+    renderTodayDots();
     nextCard();
   });
 
   $('dontBtn').addEventListener('click', function(){
     if (!cur) return;
-    cur.lv = 0;
+    if (mode === 'review') cur.lv = Math.max(1, cur.lv - 1);   // 복습 땐 퀴즈 목록에서 빠지지 않게
+    else cur.lv = 0;
     save();
     // 조금 뒤에 다시 나오게 뒤쪽에 끼워넣기
     var pos = Math.min(2, queue.length);
@@ -573,14 +844,24 @@
     nextCard();
   });
 
-  $('restudyBtn').addEventListener('click', startStudy);
+  $('restudyBtn').addEventListener('click', function(){ startReview(true); });
+  $('reviewAllBtn').addEventListener('click', function(){ startReview(false); });
+  $('goQuizBtn').addEventListener('click', function(){
+    document.querySelector('nav button[data-tab="quiz"]').click();
+  });
 
   /* ── 퀴즈 ── */
   var qList = [], qIdx = 0, qScore = 0;
   var QUIZ_LEN = 10;
 
+  function learnedWords(){
+    return state.words.filter(function(x){ return x.lv >= 1; });
+  }
+
   function resetQuizScreen(){
-    var enough = state.words.length >= 4;
+    renderMon();
+    $('monPanel').classList.remove('hidden');
+    var enough = learnedWords().length >= 5;
     $('quizEmpty').classList.toggle('hidden', enough);
     $('quizStart').classList.toggle('hidden', !enough);
     $('quizArea').classList.add('hidden');
@@ -597,12 +878,13 @@
 
   function startQuiz(){
     qList = [];
-    var pool = shuffle(state.words.slice());
+    var pool = shuffle(learnedWords());
     while (qList.length < QUIZ_LEN) {
       qList = qList.concat(shuffle(pool.slice()));
     }
     qList = qList.slice(0, QUIZ_LEN);
     qIdx = 0; qScore = 0;
+    $('monPanel').classList.add('hidden');
     $('quizStart').classList.add('hidden');
     $('quizEnd').classList.add('hidden');
     $('quizArea').classList.remove('hidden');
@@ -616,7 +898,12 @@
     $('quizSpeakBtn').classList.toggle('hidden', !isEnglish(q.w));
     $('quizSpeakBtn').onclick = function(){ speak(q.w); };
     $('quizScore').textContent = (qIdx+1) + ' / ' + qList.length + '문제 · 맞힌 개수 ' + qScore;
-    var wrongs = shuffle(state.words.filter(function(x){ return x.m !== q.m; })).slice(0,3);
+    // 틀린 보기: 내 단어 + 기본 단어장에서 뜻이 겹치지 않게 3개
+    var seen = {}; seen[q.m] = true;
+    var wrongs = [];
+    shuffle(state.words.concat(BANK).slice()).forEach(function(x){
+      if (wrongs.length < 3 && !seen[x.m]) { seen[x.m] = true; wrongs.push(x); }
+    });
     var options = shuffle(wrongs.concat([q]));
     var box = $('choices');
     box.innerHTML = '';
@@ -634,6 +921,7 @@
           state.stars++;
           save();
           checkReward();
+          feedMon();
           confetti();
         } else {
           b.classList.add('no');
@@ -641,7 +929,12 @@
             if (c.textContent === q.m) c.classList.add('ok');
           });
         }
-        setTimeout(function(){ qIdx++; showQuestion(); }, 900);
+        // 진화 축하 화면이 떠 있으면 닫을 때까지 다음 문제 기다리기
+        var go = function(){
+          if (!$('rewardOverlay').classList.contains('hidden')) { setTimeout(go, 300); return; }
+          qIdx++; showQuestion();
+        };
+        setTimeout(go, 900);
       });
       box.appendChild(b);
     });
@@ -650,6 +943,8 @@
   function endQuiz(){
     $('quizArea').classList.add('hidden');
     $('quizEnd').classList.remove('hidden');
+    $('monPanel').classList.remove('hidden');
+    renderMon();
     var msg, emo;
     if (qScore === qList.length) { emo = '🏆'; msg = '전부 맞혔어요!! 최고예요!'; confetti(); }
     else if (qScore >= qList.length * 0.7) { emo = '🌟'; msg = '정말 잘했어요!'; }
@@ -664,8 +959,17 @@
   /* ── 시작 ── */
   load();
   renderStars();
+  checkAttendance();
   startStudy();
+  renderMon();
   weeklyCheck();
+  // 앱을 켜 둔 채로 날짜가 바뀌어도 다시 열면 출석·새 단어 처리
+  document.addEventListener('visibilitychange', function(){
+    if (document.visibilityState === 'visible' && state.att.last !== dayKey()) {
+      checkAttendance();
+      document.querySelector('nav button[data-tab="study"]').click();
+    }
+  });
 })();
 </script>
 <script src="/my-dashboard/backup.js" defer></script>
