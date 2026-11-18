@@ -412,6 +412,12 @@
   /* ── 기본 영어 단어장 (매일 5개씩 꺼내 줌) ── */
   // 호주 Year 3 수준 (학교 생활·철자 단어·호주 동물/자연·수학·과학·감정 등 10개씩 묶음)
   var BANK_RAW = [
+    // ★ 우선: 학교 Year 3 Term 4 단어 (Kumiko and the Dragon)
+    "pesky|성가신, 귀찮게 하는","fluttering|파닥파닥 흔들리는","arrogant|거만한","terrifying|아주 무서운","whispers|속삭인다","relax|긴장을 풀다","brighten|밝아지다",
+    "glimmers|희미하게 반짝인다","curiosity|호기심","mistake|실수","tragic|비극적인, 아주 슬픈","drifted|(바람·물에) 떠내려갔다","interrupt|말을 끊다, 끼어들다","extinction|멸종",
+    "jabbering|재잘재잘 빠르게 떠드는","shimmering|어른어른 빛나는","brave|용감한","determined|굳게 마음먹은","possess|가지다, 소유하다","guardian|지켜 주는 사람, 수호자","chuckle|킬킬 웃다",
+    "furiously|몹시 화나서, 맹렬하게","ponder|곰곰이 생각하다","dreading|몹시 두려워하는","eagerly|간절히, 몹시 하고 싶어서","resemble|닮다","misty|안개 낀","cheerful|명랑한",
+    // 기본 Year 3 단어
     "recess|오전 쉬는 시간","tuckshop|학교 매점","uniform|교복","assembly|전교 모임, 조회","excursion|현장 학습","homework|숙제","timetable|시간표","library|도서관","spelling|철자, 받아쓰기","reading|읽기",
     "because|왜냐하면","friend|친구","people|사람들","different|다른","favourite|가장 좋아하는","together|함께","enough|충분한","through|~을 통과해서","thought|생각했다","believe|믿다",
     "mate|친구 (호주 말)","arvo|오후 (호주 말)","brekkie|아침밥 (호주 말)","footpath|인도, 보도","rubbish|쓰레기","jumper|스웨터","thongs|조리 슬리퍼 (호주 말)","swimmers|수영복 (호주 말)","sunscreen|선크림","esky|아이스박스 (호주 말)",
@@ -426,20 +432,20 @@
     "community|지역 사회, 동네","culture|문화","celebrate|축하하다","tradition|전통","country|나라","city|도시","suburb|교외 동네","neighbour|이웃","council|시청, 구청","volunteer|자원봉사자",
     "character|등장인물","setting|배경 (이야기의)","author|작가","illustrator|그림 작가","title|제목","sentence|문장","paragraph|문단","describe|묘사하다","explain|설명하다","compare|비교하다",
     "practise|연습하다","organise|정리하다","apologise|사과하다","invite|초대하다","decide|결정하다","improve|나아지다, 향상시키다","include|포함하다","continue|계속하다","prepare|준비하다","repeat|반복하다",
-    "cheerful|명랑한","gentle|부드러운, 온화한","fair|공평한","clever|영리한","lazy|게으른","busy|바쁜","lonely|외로운","jealous|질투하는","shy|수줍은","proud|자랑스러운",
-    "beach|해변","coast|해안","reef|산호초","ocean|바다","island|섬","desert|사막","outback|호주 내륙 오지","rainforest|열대우림","river|강","creek|개울, 시냇물",
-    "recycle|재활용하다","pollution|오염","plastic|플라스틱","waste|낭비하다, 쓰레기","compost|퇴비","drought|가뭄","flood|홍수","bushfire|산불","storm|폭풍","cyclone|태풍 (사이클론)",
-    "breakfast|아침 식사","lunchbox|도시락 통","biscuit|과자, 비스킷","lollies|사탕, 젤리 (호주 말)","vegetable|채소","healthy|건강한","delicious|맛있는","hungry|배고픈","thirsty|목마른","recipe|요리법",
-    "caught|잡았다","bought|샀다","brought|가져왔다","taught|가르쳤다","heard|들었다","built|지었다","chose|골랐다","wrote|썼다","spoke|말했다","forgot|잊어버렸다",
-    "question|질문","answer|대답","problem|문제","idea|생각, 아이디어","reason|이유","choice|선택","mistake|실수","example|예시","difference|차이","information|정보",
-    "heavy|무거운","narrow|좁은","wide|넓은","shallow|얕은","deep|깊은","smooth|매끄러운","rough|거친","sharp|날카로운","bright|밝은","silent|조용한, 소리 없는",
-    "always|항상","usually|보통, 대개","sometimes|가끔","never|절대 ~않다","often|자주","almost|거의","probably|아마","certainly|확실히","quickly|빨리","carefully|조심스럽게",
-    "above|~위에","below|~아래에","between|~사이에","behind|~뒤에","beside|~옆에","across|가로질러, 건너편에","among|~사이에 (여럿 중)","towards|~쪽으로","around|주위에, 빙 둘러","during|~동안",
-    "skeleton|뼈대, 해골","muscle|근육","lungs|폐, 허파","brain|뇌","stomach|배, 위","blood|피","exercise|운동","medicine|약","dentist|치과 의사","germs|세균",
-    "adventure|모험","treasure|보물","journey|여행, 여정","mystery|수수께끼, 미스터리","secret|비밀","creature|생물, 동물","giant|거인","castle|성","dragon|용","wizard|마법사",
-    "captain|선장, 주장","team|팀","score|점수","winner|우승자","cricket|크리켓","footy|축구, 럭비 (호주 말)","netball|넷볼","swimming|수영","surfing|서핑","nippers|어린이 인명구조 활동",
-    "library card|도서관 카드","borrowed|빌렸다","returned|돌려줬다","finished|끝냈다","started|시작했다","tried|시도했다","cried|울었다","laughed|웃었다","hurried|서둘렀다","worried|걱정했다",
-    "argue|말다툼하다","agree|동의하다","disagree|동의하지 않다","share|함께 쓰다, 나눠 갖다","listen|귀 기울여 듣다","remember|기억하다","forget|잊다","understand|이해하다","learn|배우다","choose|고르다"
+    "gentle|부드러운, 온화한","fair|공평한","clever|영리한","lazy|게으른","busy|바쁜","lonely|외로운","jealous|질투하는","shy|수줍은","proud|자랑스러운","beach|해변",
+    "coast|해안","reef|산호초","ocean|바다","island|섬","desert|사막","outback|호주 내륙 오지","rainforest|열대우림","river|강","creek|개울, 시냇물","recycle|재활용하다",
+    "pollution|오염","plastic|플라스틱","waste|낭비하다, 쓰레기","compost|퇴비","drought|가뭄","flood|홍수","bushfire|산불","storm|폭풍","cyclone|태풍 (사이클론)","breakfast|아침 식사",
+    "lunchbox|도시락 통","biscuit|과자, 비스킷","lollies|사탕, 젤리 (호주 말)","vegetable|채소","healthy|건강한","delicious|맛있는","hungry|배고픈","thirsty|목마른","recipe|요리법","caught|잡았다",
+    "bought|샀다","brought|가져왔다","taught|가르쳤다","heard|들었다","built|지었다","chose|골랐다","wrote|썼다","spoke|말했다","forgot|잊어버렸다","question|질문",
+    "answer|대답","problem|문제","idea|생각, 아이디어","reason|이유","choice|선택","example|예시","difference|차이","information|정보","heavy|무거운","narrow|좁은",
+    "wide|넓은","shallow|얕은","deep|깊은","smooth|매끄러운","rough|거친","sharp|날카로운","bright|밝은","silent|조용한, 소리 없는","always|항상","usually|보통, 대개",
+    "sometimes|가끔","never|절대 ~않다","often|자주","almost|거의","probably|아마","certainly|확실히","quickly|빨리","carefully|조심스럽게","above|~위에","below|~아래에",
+    "between|~사이에","behind|~뒤에","beside|~옆에","across|가로질러, 건너편에","among|~사이에 (여럿 중)","towards|~쪽으로","around|주위에, 빙 둘러","during|~동안","skeleton|뼈대, 해골","muscle|근육",
+    "lungs|폐, 허파","brain|뇌","stomach|배, 위","blood|피","exercise|운동","medicine|약","dentist|치과 의사","germs|세균","adventure|모험","treasure|보물",
+    "journey|여행, 여정","mystery|수수께끼, 미스터리","secret|비밀","creature|생물, 동물","giant|거인","castle|성","dragon|용","wizard|마법사","captain|선장, 주장","team|팀",
+    "score|점수","winner|우승자","cricket|크리켓","footy|축구, 럭비 (호주 말)","netball|넷볼","swimming|수영","surfing|서핑","nippers|어린이 인명구조 활동","library card|도서관 카드","borrowed|빌렸다",
+    "returned|돌려줬다","finished|끝냈다","started|시작했다","tried|시도했다","cried|울었다","laughed|웃었다","hurried|서둘렀다","worried|걱정했다","argue|말다툼하다","agree|동의하다",
+    "disagree|동의하지 않다","share|함께 쓰다, 나눠 갖다","listen|귀 기울여 듣다","remember|기억하다","forget|잊다","understand|이해하다","learn|배우다","choose|고르다"
   ];
   var BANK = BANK_RAW.map(function(s){ var p = s.split('|'); return { w:p[0], m:p[1] }; });
 
