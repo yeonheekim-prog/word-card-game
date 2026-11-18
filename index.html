@@ -374,6 +374,15 @@
     if (!Array.isArray(state.mon.dex)) state.mon.dex = [];
     if (!Array.isArray(state.special)) state.special = [];
     if (!Array.isArray(state.eggs)) state.eggs = [];
+    if (!Array.isArray(state.removed)) state.removed = [];
+    // 11/18 요청: 첫날 학교 단어 5개 삭제 → 오늘 단어를 다음 5개로 다시 뽑기
+    if (!state.mig_day1) {
+      var DEL = ['pesky','fluttering','arrogant','terrifying','whispers'];
+      state.words = state.words.filter(function(x){ return DEL.indexOf(x.w.toLowerCase()) < 0; });
+      DEL.forEach(function(w){ if (state.removed.indexOf(w) < 0) state.removed.push(w); });
+      if (state.daily && state.daily.words.some(function(w){ return DEL.indexOf(w.toLowerCase()) >= 0; })) delete state.daily;
+      state.mig_day1 = true;
+    }
   }
   function save(){
     try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e) {}
@@ -415,7 +424,7 @@
   // 호주 Year 3 수준 (학교 생활·철자 단어·호주 동물/자연·수학·과학·감정 등 10개씩 묶음)
   var BANK_RAW = [
     // ★ 우선: 학교 Year 3 Term 4 단어 (Kumiko and the Dragon)
-    "pesky|성가신, 귀찮게 하는","fluttering|파닥파닥 흔들리는","arrogant|거만한","terrifying|아주 무서운","whispers|속삭인다","relax|긴장을 풀다","brighten|밝아지다",
+    "relax|긴장을 풀다","brighten|밝아지다",
     "glimmers|희미하게 반짝인다","curiosity|호기심","mistake|실수","tragic|비극적인, 아주 슬픈","drifted|(바람·물에) 떠내려갔다","interrupt|말을 끊다, 끼어들다","extinction|멸종",
     "jabbering|재잘재잘 빠르게 떠드는","shimmering|어른어른 빛나는","brave|용감한","determined|굳게 마음먹은","possess|가지다, 소유하다","guardian|지켜 주는 사람, 수호자","chuckle|킬킬 웃다",
     "furiously|몹시 화나서, 맹렬하게","ponder|곰곰이 생각하다","dreading|몹시 두려워하는","eagerly|간절히, 몹시 하고 싶어서","resemble|닮다","misty|안개 낀","cheerful|명랑한",
@@ -712,6 +721,7 @@
       .map(function(x){ return { w:x.w, m:x.m }; });
     var have = {};
     state.words.forEach(function(x){ have[x.w.toLowerCase()] = true; });
+    state.removed.forEach(function(w){ have[w] = true; });
     BANK.forEach(function(b){ if (!have[b.w.toLowerCase()]) list.push(b); });
     return { today: today, list: list };
   }
@@ -801,6 +811,7 @@
       div.querySelector('.del').addEventListener('click', function(){
         if (confirm('"' + item.w + '" 단어를 지울까요?')) {
           state.words.splice(idx, 1);
+          if (state.removed.indexOf(item.w.toLowerCase()) < 0) state.removed.push(item.w.toLowerCase());
           save(); renderList();
         }
       });
@@ -856,6 +867,7 @@
     notYet.forEach(function(x){ if (pick.length < DAILY_N) pick.push(x.w); });
     var have = {};
     state.words.forEach(function(x){ have[x.w.toLowerCase()] = true; });
+    state.removed.forEach(function(w){ have[w] = true; });
     for (var i = 0; i < BANK.length && pick.length < DAILY_N; i++) {
       var b = BANK[i];
       if (have[b.w.toLowerCase()]) continue;
